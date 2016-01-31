@@ -4,9 +4,13 @@ import sys
 import time
 import zmq
 import numpy as np
+try:
+    import progressbar
+except ImportError:
+    progressbar = None
 
 try:
-    from pylepton import Lepton
+    import pylepton 
 except ImportError:
     print "Couldn't import pylepton, using Dummy data!"
     Lepton = None
@@ -19,10 +23,16 @@ context = zmq.Context()
 socket = context.socket(zmq.PUB)
 socket.bind("tcp://*:{}".format(port))
 
-n = 0
-while True:
-    frame = Frame(n, np.random.random_integers(255, size=(60.,80.)))
-    socket.send(frame.encode())
-    time.sleep(0.1)
-    n += 1
+widgets = ['Got ', progressbar.Counter(), ' frames (', progressbar.Timer(), ')']
+pbar = progressbar.ProgressBar(widgets=widgets, maxval=progressbar.UnknownLength).start()
 
+if pylepton is not None:
+    with pylepton.Lepton("/dev/spidev0.1") as lepton:
+        n = 0
+        while True:
+	    arr, idx = lepton.capture()
+	    frame = Frame(idx, arr) 
+	    #frame = Frame(-1, np.random.random_integers(4095, size=(60.,80.)))
+	    socket.send(frame.encode())
+            pbar.update(n)
+            n += 1

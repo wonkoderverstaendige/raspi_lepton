@@ -5,19 +5,19 @@ import io
 
 
 class FrameEncoder(json.JSONEncoder):
-    def default(self, frame):
-        if isinstance(frame.arr, np.ndarray):
+    def default(self, obj):
+	if isinstance(obj, Frame):
             output = io.BytesIO()
-            np.savez_compressed(output, arr=frame.arr)
-            return {'idx' : frame.idx,
+            np.savez_compressed(output, arr=obj.arr)
+            return {'idx' : obj.idx,
                     'arr_b64npz' : base64.b64encode(output.getvalue())}
-        return json.JSONEncoder.default(self, frame)
+        return json.JSONEncoder.default(self, obj)
 
 
 class Frame(object):
     def __init__(self, idx, arr):
-        self.idx = idx
-        self.arr = arr 
+        self.idx = int(idx)
+        self.arr = arr
 
     def encode(self):
         return json.dumps(self, cls=FrameEncoder)
