@@ -31,7 +31,7 @@ if pylepton is not None:
         n = 0
         while True:
 	    arr, idx = lepton.capture()
-	    frame = Frame(idx, arr) 
+	    frame = Frame(idx, np.squeeze(arr))
 	    #frame = Frame(-1, np.random.random_integers(4095, size=(60.,80.)))
 	    socket.send(frame.encode())
             pbar.update(n)
